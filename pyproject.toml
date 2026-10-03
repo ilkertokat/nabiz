@@ -1,0 +1,24 @@
+[project]
+name = "nabiz"
+version = "1.0.0"
+description = "Self-hosted website uptime & SSL monitor with a REST API and status page"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "İlker Tokat" }]
+requires-python = ">=3.10"
+dependencies = ["flask>=3.0", "httpx>=0.27"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+nabiz = "nabiz.__main__:main"
+
+[tool.setuptools]
+packages = ["nabiz"]
+
+[tool.setuptools.package-data]
+nabiz = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

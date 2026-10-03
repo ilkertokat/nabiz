@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Servis Durumu</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+.hero{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;display:flex;gap:16px;align-items:center;margin-bottom:20px}
+.hero .big{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px}
+.hero h1{font-size:22px}.hero p{color:var(--mut)}
+.svc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:18px 20px;border-top:1px solid var(--line)}
+.svc:first-child{border-top:0}.svc .bars{grid-column:1/-1;height:34px}
+.svc span{font-weight:700;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap" style="max-width:760px">
+ <div class="hero" id="hero"><div class="big" id="bigDot">…</div><div><h1 id="headline">Durum yükleniyor</h1><p id="updated"></p></div></div>
+ <div class="list" id="svcs"></div>
+ <footer>Nabız ile izleniyor · son 60 kontrol</footer>
+</div>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function load(){
+  const list=(await (await fetch("/api/monitors")).json()).filter(m=>!m.paused);
+  const down=list.filter(m=>m.status==="down");
+  bigDot.style.background=down.length?"var(--down)":"var(--up)";bigDot.textContent=down.length?"!":"✓";
+  headline.textContent=down.length?`${down.length} serviste sorun var`:"Tüm sistemler çalışıyor";
+  updated.textContent="Son güncelleme: "+new Date().toLocaleTimeString("tr-TR");
+  svcs.innerHTML=list.map(m=>{const cells=m.history.slice(-60).map(h=>`<i class="${h.up?"u":"d"}"></i>`);while(cells.length<60)cells.unshift("<i></i>");
+   return `<div class="svc"><b>${esc(m.name)}</b><span style="color:${m.status==="down"?"var(--down)":"var(--up)"}">${m.uptime_24h==null?"–":"%"+m.uptime_24h} uptime</span><div class="bars">${cells.join("")}</div></div>`}).join("");
+}
+load();setInterval(load,30000);
+</script>
+</body>
+</html>

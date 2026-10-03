@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nabız — Site İzleme</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M2 17h7l3-8 5 15 4-11 2 4h7' fill='none' stroke='%232563eb' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+</head>
+<body>
+<div class="wrap">
+ <header>
+  <div class="brand"><svg viewBox="0 0 32 32"><path d="M2 17h7l3-8 5 15 4-11 2 4h7" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Nabız</div>
+  <div style="display:flex;gap:8px"><a class="btn" href="/status" target="_blank">Durum sayfası ↗</a><button class="btn primary" id="addBtn">+ Site ekle</button></div>
+ </header>
+
+ <section class="tiles">
+  <div class="tile"><small>İzlenen</small><b id="tTotal">–</b></div>
+  <div class="tile"><small>Çalışıyor</small><b id="tUp" style="color:var(--up)">–</b></div>
+  <div class="tile"><small>Erişilemiyor</small><b id="tDown" style="color:var(--down)">–</b></div>
+  <div class="tile"><small>SSL uyarısı</small><b id="tSsl" style="color:var(--warn)">–</b></div>
+ </section>
+
+ <section class="list" id="list"><div class="empty">Yükleniyor…</div></section>
+
+ <section class="detail" id="detail">
+  <h2><span id="dName"></span><span class="acts"><button class="btn" id="dPause"></button><button class="btn" id="dDelete">Sil</button></span></h2>
+  <div class="meta" id="dMeta"></div>
+  <svg class="chart" id="chart" viewBox="0 0 1000 180" preserveAspectRatio="none"></svg>
+  <div class="err" id="dErr"></div>
+ </section>
+
+ <footer>Her kontrol sonrası panel otomatik yenilenir · Veriler 30 gün saklanır</footer>
+</div>
+
+<dialog id="dlg">
+ <form method="dialog" id="form">
+  <h3>Yeni site izle</h3>
+  <label>Ad</label><input name="name" required placeholder="Müşteri sitesi">
+  <label>Adres</label><input name="url" required type="url" placeholder="https://ornek.com">
+  <label>Kontrol aralığı (sn)</label><input name="interval_sec" type="number" min="10" value="60">
+  <label>Sayfada olması gereken kelime (isteğe bağlı)</label><input name="keyword" placeholder="ör. Sepete ekle">
+  <div class="err" id="fErr"></div>
+  <div class="dlg-acts"><button class="btn" value="cancel" formnovalidate>Vazgeç</button><button class="btn primary" value="ok">Ekle</button></div>
+ </form>
+</dialog>
+<script src="/static/app.js"></script>
+</body>
+</html>

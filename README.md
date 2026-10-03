@@ -10,6 +10,8 @@
 
 ![Nabız paneli](docs/panel.png)
 
+<sub>Görseller `scripts/demo_data.py` ile üretilen örnek veriyle alınmıştır.</sub>
+
 ## Neden?
 
 Freelance olarak yönettiğim müşteri sitelerinin çalışıp çalışmadığını ve SSL sertifikalarının ne zaman biteceğini tek bir yerden görmek istedim. Hazır SaaS çözümleri ya ücretli ya da veriyi dışarı taşıyor. Nabız tek bir Python süreci ve tek bir SQLite dosyasıyla çalışır.

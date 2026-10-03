@@ -24,7 +24,7 @@ Freelance olarak yönettiğim müşteri sitelerinin çalışıp çalışmadığ�
 - 🌐 **Herkese açık durum sayfası** (`/status`)
 - 🔑 **REST API:** Okuma serbest, yazma işlemleri isteğe bağlı `Bearer` token ile korunur
 - 🧹 30 günden eski kayıtlar otomatik temizlenir
-- 🐳 Dockerfile ve sağlık kontrolü · ✅ 23 birim/entegrasyon testi · GitHub Actions CI (Python 3.10–3.12)
+- 🐳 Dockerfile ve sağlık kontrolü · ✅ 24 birim/entegrasyon testi · GitHub Actions CI (Python 3.10–3.12)
 
 ![Durum sayfası](docs/durum-sayfasi.png)
 
@@ -97,14 +97,14 @@ Tasarım kararları:
 
 ```bash
 pip install pytest
-pytest -q        # 23 passed
+pytest -q        # 24 passed
 ```
 
 ---
 
 ## English
 
-**Nabız** ("pulse" in Turkish) is a small self-hosted uptime and SSL-expiry monitor. It checks each site on its own interval, records status code, response time and certificate expiry in SQLite, notifies via Telegram or a webhook **only when a site changes state**, and serves a dashboard plus a public status page. Built with Python, Flask and httpx; fully tested (23 tests) with GitHub Actions CI and a Dockerfile.
+**Nabız** ("pulse" in Turkish) is a small self-hosted uptime and SSL-expiry monitor. It checks each site on its own interval, records status code, response time and certificate expiry in SQLite, notifies via Telegram or a webhook **only when a site changes state**, and serves a dashboard plus a public status page. Built with Python, Flask and httpx; fully tested (24 tests) with GitHub Actions CI and a Dockerfile.
 
 Run it with `pip install -r requirements.txt && python -m nabiz`, or try the demo with `python scripts/demo_data.py demo.db && python -m nabiz --db demo.db --no-scheduler`.
 

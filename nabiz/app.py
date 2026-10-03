@@ -104,6 +104,15 @@ def create_app(db: Database | None = None, token: str | None = None) -> Flask:
         data = request.get_json(silent=True) or {}
         if "url" in data and not _valid_url(data["url"]):
             return jsonify(error="Geçersiz adres"), 400
+        if "interval_sec" in data:
+            try:
+                data["interval_sec"] = int(data["interval_sec"])
+            except (TypeError, ValueError):
+                return jsonify(error="Kontrol aralığı sayı olmalı"), 400
+            if not 10 <= data["interval_sec"] <= 86400:
+                return jsonify(error="Kontrol aralığı 10 sn ile 1 gün arasında olmalı"), 400
+        if "paused" in data:
+            data["paused"] = bool(data["paused"])
         m = db.update_monitor(mid, **data)
         return jsonify(summary(db, m))
 

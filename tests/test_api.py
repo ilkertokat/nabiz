@@ -58,3 +58,10 @@ def test_pages_served(client):
     assert client.get("/").status_code == 200
     assert client.get("/status").status_code == 200
     assert client.get("/health").get_json() == {"ok": True}
+
+
+def test_patch_validates_interval(client, db):
+    m = db.add_monitor("Site", "https://site.test")
+    assert client.patch(f"/api/monitors/{m.id}", json={"interval_sec": 1}).status_code == 400
+    assert client.patch(f"/api/monitors/{m.id}", json={"interval_sec": "abc"}).status_code == 400
+    assert client.patch(f"/api/monitors/{m.id}", json={"interval_sec": 120}).get_json()["interval_sec"] == 120

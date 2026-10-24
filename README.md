@@ -26,7 +26,7 @@ Freelance olarak yönettiğim müşteri sitelerinin çalışıp çalışmadığ�
 - 🌐 **Herkese açık durum sayfası** (`/status`)
 - 🔑 **REST API:** Okuma serbest, yazma işlemleri isteğe bağlı `Bearer` token ile korunur
 - 🧹 30 günden eski kayıtlar otomatik temizlenir
-- 🐳 Dockerfile ve sağlık kontrolü · ✅ 24 birim/entegrasyon testi · GitHub Actions CI (Python 3.10–3.12)
+- 🐳 Dockerfile ve sağlık kontrolü · ✅ 27 birim/entegrasyon testi · GitHub Actions CI (Python 3.10–3.12)
 
 ![Durum sayfası](docs/durum-sayfasi.png)
 
@@ -65,7 +65,7 @@ docker run -d -p 8080:8080 -v nabiz-data:/data -e NABIZ_TOKEN=gizli nabiz
 | Yöntem | Uç | Açıklama |
 |---|---|---|
 | `GET` | `/api/monitors` | Tüm siteler ve özetleri (durum, uptime, ortalama süre, geçmiş) |
-| `POST` | `/api/monitors` | Site ekle: `{"name", "url", "interval_sec", "keyword", "timeout_sec"}` |
+| `POST` | `/api/monitors` | Site ekle: `{"name", "url", "interval_sec", "keyword", "timeout_sec"}` (aralık 10–86400 sn, zaman aşımı 1–60 sn; geçersiz değerde `400`) |
 | `GET` | `/api/monitors/<id>` | Tek sitenin özeti |
 | `PATCH` | `/api/monitors/<id>` | Güncelle / duraklat: `{"paused": true}` |
 | `DELETE` | `/api/monitors/<id>` | Sil (geçmişiyle birlikte) |
@@ -99,14 +99,14 @@ Tasarım kararları:
 
 ```bash
 pip install pytest
-pytest -q        # 24 passed
+pytest -q        # 27 passed
 ```
 
 ---
 
 ## English
 
-**Nabız** ("pulse" in Turkish) is a small self-hosted uptime and SSL-expiry monitor. It checks each site on its own interval, records status code, response time and certificate expiry in SQLite, notifies via Telegram or a webhook **only when a site changes state**, and serves a dashboard plus a public status page. Built with Python, Flask and httpx; fully tested (24 tests) with GitHub Actions CI and a Dockerfile.
+**Nabız** ("pulse" in Turkish) is a small self-hosted uptime and SSL-expiry monitor. It checks each site on its own interval, records status code, response time and certificate expiry in SQLite, notifies via Telegram or a webhook **only when a site changes state**, and serves a dashboard plus a public status page. Built with Python, Flask and httpx; fully tested (27 tests) with GitHub Actions CI and a Dockerfile.
 
 Run it with `pip install -r requirements.txt && python -m nabiz`, or try the demo with `python scripts/demo_data.py demo.db && python -m nabiz --db demo.db --no-scheduler`.
 

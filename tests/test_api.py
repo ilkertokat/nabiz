@@ -65,3 +65,32 @@ def test_patch_validates_interval(client, db):
     assert client.patch(f"/api/monitors/{m.id}", json={"interval_sec": 1}).status_code == 400
     assert client.patch(f"/api/monitors/{m.id}", json={"interval_sec": "abc"}).status_code == 400
     assert client.patch(f"/api/monitors/{m.id}", json={"interval_sec": 120}).get_json()["interval_sec"] == 120
+
+
+def test_create_rejects_malformed_numbers(client):
+    base = {"name": "x", "url": "https://x.test"}
+    for bad in ({"interval_sec": "abc"}, {"interval_sec": None}, {"interval_sec": True},
+                {"timeout_sec": "abc"}, {"timeout_sec": 0}, {"timeout_sec": 600}):
+        r = client.post("/api/monitors", json={**base, **bad})
+        assert r.status_code == 400, bad
+        assert "error" in r.get_json()
+    r = client.post("/api/monitors", json={**base, "interval_sec": "30", "timeout_sec": "5"})
+    assert r.status_code == 201
+    assert r.get_json()["interval_sec"] == 30 and r.get_json()["timeout_sec"] == 5.0
+
+
+def test_patch_validates_timeout_and_url_type(client, db):
+    m = db.add_monitor("Site", "https://site.test")
+    assert client.patch(f"/api/monitors/{m.id}", json={"timeout_sec": "abc"}).status_code == 400
+    assert client.patch(f"/api/monitors/{m.id}", json={"timeout_sec": 0.5}).status_code == 400
+    assert client.patch(f"/api/monitors/{m.id}", json={"url": 123}).status_code == 400
+    assert client.patch(f"/api/monitors/{m.id}", json={"timeout_sec": 20}).get_json()["timeout_sec"] == 20.0
+
+
+def test_checks_hours_param(client, db):
+    m = db.add_monitor("Site", "https://site.test")
+    db.add_check(Check(m.id, time.time() - 60, True, 200, 50.0, 60))
+    assert client.get(f"/api/monitors/{m.id}/checks?hours=abc").status_code == 400
+    assert client.get(f"/api/monitors/{m.id}/checks?hours=0").status_code == 400
+    assert len(client.get(f"/api/monitors/{m.id}/checks?hours=1").get_json()) == 1
+    assert client.get(f"/api/monitors/{m.id}/checks?hours=100000").status_code == 200  # 30 güne kırpılır

@@ -94,3 +94,34 @@ def test_checks_hours_param(client, db):
     assert client.get(f"/api/monitors/{m.id}/checks?hours=0").status_code == 400
     assert len(client.get(f"/api/monitors/{m.id}/checks?hours=1").get_json()) == 1
     assert client.get(f"/api/monitors/{m.id}/checks?hours=100000").status_code == 200  # 30 güne kırpılır
+
+
+def test_create_rejects_wrong_types(client):
+    base = {"name": "x", "url": "https://x.test"}
+    for bad in ({"name": 123}, {"url": 123}, {"keyword": 5}):
+        r = client.post("/api/monitors", json={**base, **bad})
+        assert r.status_code == 400, bad
+        assert "error" in r.get_json()
+    assert client.post("/api/monitors", json=[1]).status_code == 400
+    assert client.get("/api/monitors").get_json() == []
+
+
+def test_patch_validates_text_fields(client, db):
+    m = db.add_monitor("Site", "https://site.test", keyword="Sepet")
+    url = f"/api/monitors/{m.id}"
+    for bad in ({"name": None}, {"name": "  "}, {"name": 5}, {"keyword": 5}, {"url": None}):
+        assert client.patch(url, json=bad).status_code == 400, bad
+    assert client.patch(url, json=[1]).status_code == 400
+    unchanged = client.get(url).get_json()
+    assert unchanged["name"] == "Site" and unchanged["keyword"] == "Sepet"
+    body = client.patch(url, json={"name": " Yeni ", "url": " https://yeni.test ", "keyword": ""}).get_json()
+    assert (body["name"], body["url"], body["keyword"]) == ("Yeni", "https://yeni.test", None)
+
+
+def test_patch_duplicate_url_conflict(client, db):
+    a = db.add_monitor("A", "https://a.test")
+    db.add_monitor("B", "https://b.test")
+    r = client.patch(f"/api/monitors/{a.id}", json={"url": "https://b.test"})
+    assert r.status_code == 409 and "error" in r.get_json()
+    # kendi adresini yeniden göndermek çakışma değildir
+    assert client.patch(f"/api/monitors/{a.id}", json={"url": "https://a.test"}).status_code == 200

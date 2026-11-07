@@ -20,6 +20,11 @@ def _valid_url(url) -> bool:
     return p.scheme in ("http", "https") and bool(p.netloc)
 
 
+def _text(value) -> str:
+    """Metin alanını kırpar; metin değilse boş döner (doğrulamada geçersiz sayılır)."""
+    return value.strip() if isinstance(value, str) else ""
+
+
 def _number(value, cast, low, high):
     """Değeri sayıya çevirir; geçersiz ya da aralık dışıysa None döner."""
     if isinstance(value, bool):
@@ -33,6 +38,9 @@ def _number(value, cast, low, high):
 
 INTERVAL_ERROR = "Kontrol aralığı 10 sn ile 1 gün arasında bir sayı olmalı"
 TIMEOUT_ERROR = "Zaman aşımı 1 ile 60 sn arasında bir sayı olmalı"
+KEYWORD_ERROR = "Anahtar kelime metin olmalı"
+BODY_ERROR = "İstek gövdesi bir JSON nesnesi olmalı"
+DUPLICATE_ERROR = "Bu adres zaten izleniyor"
 
 
 def summary(db: Database, monitor, now: float | None = None) -> dict:
@@ -94,7 +102,9 @@ def create_app(db: Database | None = None, token: str | None = None) -> Flask:
     @write_protected
     def create_monitor():
         data = request.get_json(silent=True) or {}
-        name, url = (data.get("name") or "").strip(), (data.get("url") or "").strip()
+        if not isinstance(data, dict):
+            return jsonify(error=BODY_ERROR), 400
+        name, url = _text(data.get("name")), _text(data.get("url"))
         if not name or not _valid_url(url):
             return jsonify(error="Geçerli bir ad ve http(s) adresi gerekli"), 400
         interval = _number(data.get("interval_sec", 60), int, 10, DAY)
@@ -103,9 +113,11 @@ def create_app(db: Database | None = None, token: str | None = None) -> Flask:
         timeout = _number(data.get("timeout_sec", 10), float, 1, 60)
         if timeout is None:
             return jsonify(error=TIMEOUT_ERROR), 400
+        if not isinstance(data.get("keyword"), (str, type(None))):
+            return jsonify(error=KEYWORD_ERROR), 400
         db = get_db()
         if any(m.url == url for m in db.list_monitors()):
-            return jsonify(error="Bu adres zaten izleniyor"), 409
+            return jsonify(error=DUPLICATE_ERROR), 409
         m = db.add_monitor(name, url, interval, data.get("keyword") or None, timeout)
         return jsonify(summary(db, m)), 201
 
@@ -121,8 +133,22 @@ def create_app(db: Database | None = None, token: str | None = None) -> Flask:
         db = get_db()
         db.get_monitor(mid) or abort(404)
         data = request.get_json(silent=True) or {}
-        if "url" in data and not _valid_url(data["url"]):
-            return jsonify(error="Geçersiz adres"), 400
+        if not isinstance(data, dict):
+            return jsonify(error=BODY_ERROR), 400
+        if "name" in data:
+            data["name"] = _text(data["name"])
+            if not data["name"]:
+                return jsonify(error="Ad boş olamaz"), 400
+        if "url" in data:
+            data["url"] = _text(data["url"])
+            if not _valid_url(data["url"]):
+                return jsonify(error="Geçersiz adres"), 400
+            if any(m.url == data["url"] and m.id != mid for m in db.list_monitors()):
+                return jsonify(error=DUPLICATE_ERROR), 409
+        if "keyword" in data:
+            if not isinstance(data["keyword"], (str, type(None))):
+                return jsonify(error=KEYWORD_ERROR), 400
+            data["keyword"] = data["keyword"] or None
         if "interval_sec" in data:
             data["interval_sec"] = _number(data["interval_sec"], int, 10, DAY)
             if data["interval_sec"] is None:
